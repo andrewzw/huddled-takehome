@@ -1,14 +1,9 @@
 <script lang="ts">
-  import type { PageData } from "./$types";
   import { Chart } from "chart.js/auto";
   import { onMount } from "svelte";
-
-  let { data }: { data: PageData } = $props();
-  let selectedArtist = $state<string | null>(null);
-  let artists = $state<string[]>([]);
   let chartInstance: Chart | null = null;
-
   // Process data to group by artist and hour
+
   function processData() {
     const artistData = new Map();
     const uniqueArtists = new Set<string>();
@@ -101,43 +96,4 @@
       },
     });
   }
-
-  onMount(() => {
-    processData();
-  });
-
-  $effect(() => {
-    if (selectedArtist) {
-      createChart(selectedArtist);
-    }
-  });
 </script>
-
-<div class="flex flex-col items-center justify-center p-4 space-y-6 h-full">
-  <div class="w-full max-w-md">
-    <label
-      for="artist-select"
-      class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2"
-    >
-      Select Artist
-    </label>
-    <select
-      id="artist-select"
-      bind:value={selectedArtist}
-      class="block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-    >
-      <option value="">Choose an artist</option>
-      {#each artists as artist}
-        <option value={artist}>{artist}</option>
-      {/each}
-    </select>
-  </div>
-
-  {#if selectedArtist}
-    <div
-      class="w-full max-w-4xl h-[600px] bg-white dark:bg-gray-800 p-4 rounded-lg shadow"
-    >
-      <canvas id="engagementChart"></canvas>
-    </div>
-  {/if}
-</div>
