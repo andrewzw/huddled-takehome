@@ -1,23 +1,24 @@
 <script lang="ts">
   import { Chart } from "chart.js/auto";
-  import { onMount } from "svelte";
+
+  let { data, selectedArtist } = $props();
   let chartInstance: Chart | null = null;
   // Process data to group by artist and hour
-
   function processData() {
     const artistData = new Map();
-    const uniqueArtists = new Set<string>();
+    const uniqueArtists = new Set<string>(); //no duplicates
 
-    data.data.forEach((record: any) => {
+    data.forEach((record: any) => {
       if (!artistData.has(record.artist_name)) {
-        artistData.set(record.artist_name, Array(24).fill(0));
+        // if doesnt exist
+        artistData.set(record.artist_name, Array(24).fill(0)); //1 hr for each
         uniqueArtists.add(record.artist_name);
       }
-      const hourData = artistData.get(record.artist_name);
-      hourData[parseInt(record.hour)] = record.total_engagement;
+      const hourData = artistData.get(record.artist_name); //get the artist's hourly data
+      hourData[parseInt(record.hour)] = record.total_engagement; //set engagement score at hour index
     });
 
-    artists = Array.from(uniqueArtists).sort();
+    //console.log(artistData);
     return artistData;
   }
 
@@ -96,4 +97,16 @@
       },
     });
   }
+
+  $effect(() => {
+    if (selectedArtist) {
+      createChart(selectedArtist);
+    }
+  });
 </script>
+
+<div
+  class="w-full max-w-4xl h-[600px] bg-white dark:bg-gray-800 p-4 rounded-lg shadow"
+>
+  <canvas id="engagementChart"></canvas>
+</div>

@@ -1,120 +1,30 @@
 <script lang="ts">
   import type { PageData } from "./$types";
-  import { Chart } from "chart.js/auto";
   import { onMount } from "svelte";
+  import LineChart from "$lib/components/lineChart.svelte";
 
   let { data }: { data: PageData } = $props();
   let selectedArtist = $state<string | null>(null);
   let artists = $state<string[]>([]);
-  let chartInstance: Chart | null = null;
 
   // Process data to group by artist and hour
-  function processData() {
-    const artistData = new Map();
+  function processArtists() {
     const uniqueArtists = new Set<string>();
-
     data.data.forEach((record: any) => {
-      if (!artistData.has(record.artist_name)) {
-        artistData.set(record.artist_name, Array(24).fill(0));
-        uniqueArtists.add(record.artist_name);
-      }
-      const hourData = artistData.get(record.artist_name);
-      hourData[parseInt(record.hour)] = record.total_engagement;
+      uniqueArtists.add(record.artist_name);
     });
-
     artists = Array.from(uniqueArtists).sort();
-    return artistData;
-  }
-
-  function createChart(artistName: string) {
-    const canvas = document.getElementById(
-      "engagementChart"
-    ) as HTMLCanvasElement;
-    if (!canvas) return;
-
-    if (chartInstance) {
-      chartInstance.destroy();
-    }
-
-    const artistData = processData();
-    const hourLabels = Array.from(
-      { length: 24 },
-      (_, i) => `${i.toString().padStart(2, "0")}:00`
-    );
-
-    chartInstance = new Chart(canvas, {
-      type: "line",
-      data: {
-        labels: hourLabels,
-        datasets: [
-          {
-            label: `${artistName} Engagement`,
-
-            data: artistData.get(artistName),
-            fill: true,
-            backgroundColor: "rgb(245, 254, 253, 0.3)",
-            borderColor: "rgb(75, 192, 192)",
-            tension: 0.4,
-            pointRadius: 4,
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          title: {
-            display: true,
-            text: `Hourly Engagement Pattern for ${artistName}`,
-            color: "#f5fefd",
-            font: { size: 16 },
-          },
-          legend: {
-            position: "top",
-          },
-        },
-        scales: {
-          x: {
-            title: {
-              display: true,
-              text: "Hour of Day",
-              color: "#f5fefd",
-            },
-            grid: {
-              display: true,
-              color: "rgba(0, 0, 0, 0.3)",
-            },
-          },
-          y: {
-            title: {
-              display: true,
-              text: "Engagement Score",
-              color: "#f5fefd",
-            },
-            beginAtZero: true,
-            grid: {
-              display: true,
-              color: "rgba(0, 0, 0, 0.3)",
-            },
-          },
-        },
-      },
-    });
   }
 
   onMount(() => {
-    processData();
-  });
-
-  $effect(() => {
-    if (selectedArtist) {
-      createChart(selectedArtist);
-    }
+    processArtists();
   });
 </script>
 
-<div class="flex flex-col items-center justify-center p-4 space-y-6 h-full">
-  <div class="w-full max-w-md">
+<div class="flex flex-col items-center p-4 space-y-6 h-[60rem]">
+  <div
+    class="w-full max-w-md min-w-max overflow-y-auto relative scrollbar-pretty"
+  >
     <label
       for="artist-select"
       class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2"
@@ -134,10 +44,6 @@
   </div>
 
   {#if selectedArtist}
-    <div
-      class="w-full max-w-4xl h-[600px] bg-white dark:bg-gray-800 p-4 rounded-lg shadow"
-    >
-      <canvas id="engagementChart"></canvas>
-    </div>
+    <LineChart data={data.data} {selectedArtist} />
   {/if}
 </div>
