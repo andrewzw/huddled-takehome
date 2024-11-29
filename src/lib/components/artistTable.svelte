@@ -4,25 +4,75 @@
   function formatDuration(duration: number): string {
     // duration is in milliseconds
     const seconds = Math.floor(duration / 1000);
+    const hours = Math.floor(seconds / 3600);
+    const remainingMinutes = Math.floor((seconds % 3600) / 60);
+    const remainingSeconds = seconds % 60;
 
-    if (seconds < 60) {
-      // interactions less than 1 Minute.
-      return `${seconds}s`;
-    } else if (seconds < 3600) {
-      // interactions less than 1 Hour.
-      const minutes = Math.floor(seconds / 60); //convert seconds to minutes
-      return `${minutes}m`;
-    } else {
-      // interactions longer than 1 Hour.
-      const hours = Math.floor(seconds / 3600); //convert seconds to hours
-      return `${hours}h`;
+    if (hours === 0 && remainingMinutes === 0) {
+      return `${remainingSeconds}s`; //less than 1 min
+    } else if (hours === 0) {
+      return `${remainingMinutes}m ${remainingSeconds}s`; //less than 1 hour
+    }
+    return remainingSeconds > 0
+      ? `${hours}h ${remainingMinutes}m ${remainingSeconds}s`
+      : `${hours}h ${remainingMinutes}m`; //more than 1 hour
+  }
+
+  console.log(formatDuration(10000));
+  console.log(formatDuration(100000));
+  console.log(formatDuration(10000000));
+
+  let currentPage = $state(1);
+  const itemsPerPage = 15;
+
+  const totalPages = $derived(Math.ceil(artistVisits.length / itemsPerPage));
+  const paginatedArtistVisits = $derived(
+    artistVisits.slice(
+      (currentPage - 1) * itemsPerPage,
+      currentPage * itemsPerPage
+    )
+  );
+
+  function goToPage(page: number) {
+    if (page >= 1 && page <= totalPages) {
+      currentPage = page;
     }
   }
 </script>
 
 <div class="overflow-x-auto">
+  <nav aria-label="data pagination" class="mb-2">
+    <ul class="inline-flex -space-x-px text-sm">
+      <li>
+        <button
+          onclick={() => goToPage(currentPage - 1)}
+          class="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+          >Previous</button
+        >
+      </li>
+      {#each Array(totalPages) as _, i}
+        <li>
+          <button
+            onclick={() => goToPage(i + 1)}
+            class="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white {currentPage ===
+            i + 1
+              ? 'text-blue-600 bg-blue-50 hover:bg-blue-100 hover:text-blue-700 dark:border-gray-700 dark:bg-gray-700 dark:text-white'
+              : ''}"
+            >{i + 1}
+          </button>
+        </li>
+      {/each}
+      <li>
+        <button
+          onclick={() => goToPage(currentPage + 1)}
+          class="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+          >Next</button
+        >
+      </li>
+    </ul>
+  </nav>
   <div
-    class="min-w-max w-[60rem] h-[60rem] overflow-y-auto relative scrollbar-pretty"
+    class="min-w-max w-[60rem] h-[60em] overflow-y-auto relative scrollbar-pretty"
   >
     <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
       <thead
@@ -38,7 +88,7 @@
         </tr>
       </thead>
       <tbody>
-        {#each artistVisits as { artist_id, artist_name, total_visit_duration, unique_session_count }}
+        {#each paginatedArtistVisits as { artist_id, artist_name, total_visit_duration, unique_session_count }}
           <tr
             class="bg-white border-b dark:even:bg-gray-800 dark:border-gray-700 dark:odd:bg-gray-700"
           >
