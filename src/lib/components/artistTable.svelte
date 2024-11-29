@@ -18,10 +18,6 @@
       : `${hours}h ${remainingMinutes}m`; //more than 1 hour
   }
 
-  console.log(formatDuration(10000));
-  console.log(formatDuration(100000));
-  console.log(formatDuration(10000000));
-
   let currentPage = $state(1);
   const itemsPerPage = 15;
 
@@ -76,7 +72,7 @@
   >
     <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
       <thead
-        class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400 sticky top-0"
+        class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400 sticky top-0 border-b-2"
       >
         <tr>
           <th scope="col" class="px-6 py-3">Artist Id</th>
