@@ -147,35 +147,37 @@ ORDER BY total_score DESC;
     `;
 
   const eventLineStatsQuery = `
-  WITH weighted_events AS (
-    SELECT 
-      ue.event_type,
-      ue.artist_id,
-      a.name as artist_name,
-      strftime('%w', datetime(ue.created_at/1000, 'unixepoch')) as day_of_week,
-      strftime('%H', datetime(ue.created_at/1000, 'unixepoch')) as hour,
-      strftime('%m', datetime(ue.created_at/1000, 'unixepoch')) as month,
-      CASE 
-        WHEN ue.event_type = 'like_track' THEN 2
-        WHEN ue.event_type = 'add_track_to_playlist' THEN 2
-        WHEN ue.event_type = 'play_track' THEN 1
-        WHEN ue.event_type = 'share_track' THEN 3
-        ELSE 0 
-      END as engagement_score
-    FROM user_events ue
-    JOIN artists a ON ue.artist_id = a.id
-    WHERE ue.event_type IN ('like_track', 'add_track_to_playlist', 'play_track', 'share_track')
-  )
+ WITH weighted_events AS (
   SELECT 
-    event_type,
-    artist_name,
-    day_of_week,
-    hour,
-    month,
-    SUM(engagement_score) as total_engagement
-  FROM weighted_events
-  GROUP BY event_type, artist_name, day_of_week, hour, month
-  ORDER BY event_type, month, day_of_week, hour;
+    ue.event_type,
+    ue.artist_id,
+    a.name as artist_name,
+    strftime('%w', datetime(ue.created_at/1000, 'unixepoch')) as day_of_week,
+    strftime('%H', datetime(ue.created_at/1000, 'unixepoch')) as hour,
+    strftime('%d', datetime(ue.created_at/1000, 'unixepoch')) as day_of_month,
+    strftime('%m', datetime(ue.created_at/1000, 'unixepoch')) as month,
+    CASE 
+      WHEN ue.event_type = 'like_track' THEN 2
+      WHEN ue.event_type = 'add_track_to_playlist' THEN 2
+      WHEN ue.event_type = 'play_track' THEN 1
+      WHEN ue.event_type = 'share_track' THEN 3
+      ELSE 0 
+    END as engagement_score
+  FROM user_events ue
+  JOIN artists a ON ue.artist_id = a.id
+  WHERE ue.event_type IN ('like_track', 'add_track_to_playlist', 'play_track', 'share_track')
+)
+SELECT 
+  event_type,
+  artist_name,
+  day_of_week,
+  hour,
+  day_of_month,
+  month,
+  SUM(engagement_score) as total_engagement
+FROM weighted_events
+GROUP BY event_type, artist_name, day_of_week, hour, day_of_month, month
+ORDER BY event_type, month, day_of_month, day_of_week, hour;
 `;
 
   const engagementTimePeriodQuery = `

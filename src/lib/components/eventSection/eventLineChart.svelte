@@ -4,19 +4,40 @@
 
   let { data, selectedArtist = "Average of all artists" } = $props();
   let chartInstance: Chart | null = null;
-  let viewType = $state("hourly");
+  let viewType: "hourly" | "daily" | "monthly" | "yearly" = $state("hourly");
 
+  function initializeEventData(length: number, eventTypes: string[]) {
+  const eventData = new Map<string, number[]>();
+  eventTypes.forEach(type => {
+    eventData.set(type, Array(length).fill(0));
+  });
+  return eventData;
+}
+
+function processTimeData(record: any, eventData: Map<string, number[]>, timeField: string, adjustment = 0) {
+  const data = eventData.get(record.event_type);
+  const timeValue = parseInt(record[timeField]);
+  if (data && !isNaN(timeValue)) {
+    data[timeValue + adjustment] += record.total_engagement;
+  }
+}
   function processData() {
-    const eventData = new Map<string, number[]>();
     const eventTypes = [
       "like_track",
       "add_track_to_playlist",
       "play_track",
       "share_track",
     ];
-    const periodLength =
-      viewType === "hourly" ? 24 : viewType === "daily" ? 7 : 31;
-    const averageData = Array(periodLength).fill(0);
+    const periodConfig = {
+    hourly: { length: 24, field: 'hour', adjustment: 0 },
+    daily: { length: 7, field: 'day_of_week', adjustment: 0 },
+    monthly: { length: 31, field: 'day_of_month', adjustment: -1 },
+    yearly: { length: 12, field: 'month', adjustment: -1 }
+  };
+
+  const config = periodConfig[viewType as "hourly" | "daily" | "monthly" | "yearly"];
+  const eventData = initializeEventData(config.length, eventTypes);
+  const averageData = Array(config.length).fill(0);
 
     // filter by artist
     const filteredData =
@@ -24,64 +45,27 @@
         ? data
         : data.filter((record: any) => record.artist_name === selectedArtist);
 
-    switch (viewType) {
-      case "hourly":
-        eventTypes.forEach((type) => {
-          eventData.set(type, Array(24).fill(0));
-        });
-        filteredData.forEach((record: any) => {
-          const hourData = eventData.get(record.event_type);
-          const hour = parseInt(record.hour);
-          if (hourData) {
-            hourData[hour] += record.total_engagement;
-          }
-        });
-        break;
+//process data
+filteredData.forEach((record: any) => {
+    processTimeData(record, eventData, config.field, config.adjustment);
+  });
 
-      case "daily":
-        eventTypes.forEach((type) => {
-          eventData.set(type, Array(7).fill(0));
-        });
-        filteredData.forEach((record: any) => {
-          const dayData = eventData.get(record.event_type);
-          const day = parseInt(record.day_of_week);
-          if (dayData) {
-            dayData[day] += record.total_engagement;
-          }
-        });
-        break;
-
-      case "monthly":
-        eventTypes.forEach((type) => {
-          eventData.set(type, Array(31).fill(0));
-        });
-        filteredData.forEach((record: any) => {
-          const monthData = eventData.get(record.event_type);
-          const day = parseInt(record.month);
-          if (monthData) {
-            monthData[day - 1] += record.total_engagement;
-          }
-        });
-        break;
-    }
-
-    // average of each time period
-    for (let i = 0; i < periodLength; i++) {
-      let sum = 0;
-      let count = 0;
-      eventTypes.forEach((type) => {
-        const data = eventData.get(type);
-        if (data && data[i]) {
-          sum += data[i];
-          count++;
-        }
-      });
-      averageData[i] = count > 0 ? sum / count : 0;
-    }
-    eventData.set("average", averageData);
-
-    return eventData;
+  //calc average data when average of all artists selected
+  for (let i = 0; i < config.length; i++) {
+    let sum = 0, count = 0;
+    eventTypes.forEach(type => {
+      const data = eventData.get(type);
+      if (data && data[i]) {
+        sum += data[i];
+        count++;
+      }
+    });
+    averageData[i] = count > 0 ? sum / count : 0;
   }
+  eventData.set("average", averageData);
+
+  return eventData;
+}
 
   function createChart() {
     const canvas = document.getElementById(
@@ -95,28 +79,15 @@
 
     const eventData = processData();
     const labels = (() => {
-      switch (viewType) {
-        case "hourly":
-          return Array.from(
-            { length: 24 },
-            (_, i) => `${i.toString().padStart(2, "0")}:00`
-          );
-        case "daily":
-          return [
-            "Sunday",
-            "Monday",
-            "Tuesday",
-            "Wednesday",
-            "Thursday",
-            "Friday",
-            "Saturday",
-          ];
-        case "monthly":
-          return Array.from({ length: 31 }, (_, i) => `Day ${i + 1}`);
-        default:
-          return [];
-      }
-    })();
+  const labelConfig = {
+    hourly: () => Array.from({ length: 24 }, (_, i) => 
+      `${i.toString().padStart(2, "0")}:00`),
+    daily: () => ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+    monthly: () => Array.from({ length: 31 }, (_, i) => `Day ${i + 1}`),
+    yearly: () => ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+  };
+  return labelConfig[viewType]?.() || [];
+})();
 
     const colors: { [key: string]: string } = {
       like_track: "rgb(75, 192, 192)",
@@ -149,7 +120,7 @@
             borderDash: [5, 5],
             fill: false,
             tension: 0.4,
-            pointRadius: 0,
+            pointRadius: 4,
           },
         ],
       },
@@ -157,6 +128,7 @@
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
+    
           title: {
             display: true,
             text:
@@ -178,17 +150,16 @@
           x: {
             title: {
               display: true,
-              text:
-                viewType === "hourly"
-                  ? "Hours"
-                  : viewType === "daily"
-                    ? "Days"
-                    : "Months",
+              text: 
+                viewType === "hourly" ? "Hour of Day" :
+                viewType === "daily" ? "Day of Week" :
+                viewType === "monthly" ? "Day of Month" : "Month of Year",
               color: "#f5fefd",
             },
             ticks: { color: "#f5fefd" },
             grid: {
-              color: "rgba(255, 255, 255, 0.1)",
+              display: true,
+              color: "rgb(245, 254, 253,0.1)",
             },
           },
           y: {
@@ -200,7 +171,8 @@
             ticks: { color: "#f5fefd" },
             beginAtZero: true,
             grid: {
-              color: "rgba(255, 255, 255, 0.1)",
+              display: true,
+              color: "rgb(245, 254, 253,0.1)",
             },
           },
         },
@@ -226,6 +198,9 @@
         break;
       case "daily":
         viewType = "daily";
+        break;
+      case "yearly":
+        viewType = "yearly";
         break;
     }
   }
@@ -263,9 +238,25 @@
           : ''}">Month</button
       >
     </li>
+    <li class="me-2">
+      <button
+        onclick={() => toggleButton("yearly")}
+        class="inline-block p-4 rounded-t-lg hover:text-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 dark:hover:text-gray-300 {viewType ===
+        'yearly'
+          ? 'text-blue-600 bg-gray-100 dark:bg-gray-800 dark:text-blue-500 border-b'
+          : ''}">Year</button
+      >
+    </li>
   </ul>
-
-  <div class="flex-1 h-[65vh]">
+  
+  <div class="flex-1 h-[65vh]"
+  >
+  <button 
+    class="m-3 px-3 py-1 bg-gray-700 text-white rounded"
+    onclick={() => chartInstance?.resetZoom()}
+  >
+    Reset Zoom
+  </button>
     <canvas id="eventEngagementChart"></canvas>
   </div>
 </div>
