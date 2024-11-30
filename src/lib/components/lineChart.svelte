@@ -114,7 +114,7 @@
               color: "#f5fefd",
             },
             ticks: {
-              color: "rgb(245, 254, 253,0.7)",
+              color: "#f5fefd"
             },
             grid: {
               display: true,
@@ -128,7 +128,7 @@
               color: "#f5fefd",
             },
             ticks: {
-              color: "rgb(245, 254, 253,0.7)", //#f5fefd
+              color: "#f5fefd"
             },
             beginAtZero: true,
             grid: {
@@ -146,9 +146,8 @@
   });
 </script>
 
-<div
-  class="flex flex-col w-full max-w-4xl h-[600px] gap-6 bg-white dark:bg-gray-700 p-4 rounded-lg shadow"
->
+<div class="w-full flex h-[600px] bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
+
   <div class="max-w-md">
     <label
       for="artist-select"
@@ -168,9 +167,7 @@
     </select>
   </div>
 
-  <div
-    class="w-full h-[600px] bg-white dark:bg-slate-950 p-4 rounded-lg shadow"
-  >
+  <div class="flex-1">
     <canvas id="engagementChart"></canvas>
   </div>
 </div>

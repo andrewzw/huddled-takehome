@@ -1,12 +1,14 @@
 <script lang="ts">
   import type { PageData } from "./$types";
-  import { onMount } from "svelte";
   import LineChart from "$lib/components/lineChart.svelte";
+  import EventBarChart from "$lib/components/eventBarChart.svelte"; 
+  import EventLineChart from "$lib/components/eventLineChart.svelte";
 
   let { data }: { data: PageData } = $props();
   let selectedArtist = $state<string>("Average of all artists");
   let currentPage = $state(1);
-
+  let eventCharts = ["Event Engagement by Points and Occurance", "Event Type Trend"];
+  let selectedEventChart = $state<string>("Event Engagement by Points and Occurance");
   function goToPage(page: number) {
     if (page >= 1 && page <= 3) {
       currentPage = page;
@@ -14,7 +16,7 @@
   }
 </script>
 
-<div class="flex flex-col items-center p-4 gap-6 h-[60rem]">
+<div class="flex flex-col items-center p-4 gap-6 min-h-[60rem]">
   <nav aria-label="data pagination" class="mb-2">
     <ul class="inline-flex -space-x-px text-sm">
       <li>
@@ -46,16 +48,43 @@
     </ul>
   </nav>
   {#if currentPage === 1}
-    <div class="container mx-auto max-w-4xl justify-center items-center">
+    <div class="container mx-auto max-w-screen justify-center items-center">
+      <h1 class="text-2xl font-bold text-center mb-5">Artists Stats</h1> 
       <LineChart data={data.engagementStats} {selectedArtist} />
     </div>
-  {:else if currentPage === 2}
-    <div class="container mx-auto max-w-4xl justify-center items-center">
-      <p>Section 2</p>
+    
+    {:else if currentPage === 2}
+    <div class="container mx-auto max-w-screen justify-center items-center">
+      <h1 class="text-2xl font-bold text-center mb-5">Events Stats</h1> 
+      <div class="max-w-md mb-2">
+        <label
+          for="artist-select"
+          class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2"
+        >
+          Select Chart
+        </label>
+        <select
+          id="artist-select"
+          bind:value={selectedEventChart}
+          class="block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+        >
+          {#each eventCharts as eventChart}
+            <option value={eventChart}>{eventChart}</option>
+          {/each}
+        </select>
+      </div>
+
+      {#if selectedEventChart === "Event Engagement by Points and Occurance"}
+      <EventBarChart data={data.eventBarStats} barTitle="Event Engagement by Points and Occurance" yTitle="Total Points" xTitle="Event Type" />
+      {:else if selectedEventChart === "Event Type Trend"}
+      <EventLineChart data={data.eventLineStats} />
+      {/if}
     </div>
-  {:else}
-    <div class="container mx-auto max-w-4xl justify-center items-center">
-      <p>Section 3</p>
+
+    {:else}
+    <div class="container mx-auto max-w-screen justify-center items-center">
+      <h1 class="text-2xl font-bold text-center mb-5">Section 3</h1> 
+
     </div>
   {/if}
 </div>
