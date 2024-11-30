@@ -111,6 +111,8 @@ filteredData.forEach((record: any) => {
               borderColor: colors[type],
               tension: 0.4,
               pointRadius: 4,
+              pointHoverBackgroundColor: "colors[type]",
+            pointHoverBorderWidth: 6,
             })),
           {
             label: "AVERAGE",
@@ -121,6 +123,8 @@ filteredData.forEach((record: any) => {
             fill: false,
             tension: 0.4,
             pointRadius: 4,
+            pointHoverBackgroundColor: "rgb(255, 255, 255)",
+            pointHoverBorderWidth: 6,
           },
         ],
       },
@@ -251,12 +255,7 @@ filteredData.forEach((record: any) => {
   
   <div class="flex-1 h-[65vh]"
   >
-  <button 
-    class="m-3 px-3 py-1 bg-gray-700 text-white rounded"
-    onclick={() => chartInstance?.resetZoom()}
-  >
-    Reset Zoom
-  </button>
+
     <canvas id="eventEngagementChart"></canvas>
   </div>
 </div>
