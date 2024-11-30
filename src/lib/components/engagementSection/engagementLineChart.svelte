@@ -3,40 +3,48 @@
 
   let { data, selectedArtist } = $props();
   let chartInstance: Chart | null = null;
-  let artists = $state<string[]>([]);
+  let viewType = $state("hourly");
 
-  // Process data to group by artist and hour
+ 
   function processData() {
-    const artistData = new Map();
-    const averageData = Array(24).fill(0);
-    const artistCountPerHour = Array(24).fill(0);
+  const artistData = new Map();
+  let periodLength = 
+    viewType === "hourly" ? 24 : 
+    viewType === "daily" ? 7 : 
+    viewType === "monthly" ? 31 : 12;
+  
+  const averageData = Array(periodLength).fill(0);
+  const artistCountPerPeriod = Array(periodLength).fill(0);
 
-    data.forEach((record: any) => {
-      if (!artistData.has(record.artist_name)) {
-        // if doesnt exist
-        artistData.set(record.artist_name, Array(24).fill(0)); //1 hr for each
-      }
-      const hourData = artistData.get(record.artist_name); //get the artist's hourly data
-      const hour = parseInt(record.hour); //convert to int
-      hourData[hour] = record.total_engagement; //set engagement score at hour index
+  // filter data for current view type
+  const periodData = data.filter((record: { period_type: string }) => record.period_type === viewType);
 
-      averageData[hour] += record.total_engagement;
-      artistCountPerHour[hour]++;
-    });
-
-    //calculate average for each hour
-    for (let i = 0; i < 24; i++) {
-      if (artistCountPerHour[i] > 0) {
-        averageData[i] = averageData[i] / artistCountPerHour[i];
-      }
+  periodData.forEach((record: any) => {
+    if (!artistData.has(record.artist_name)) {
+      artistData.set(record.artist_name, Array(periodLength).fill(0));
     }
 
-    artistData.set("Average of all artists", averageData); //use average if no artist selected
+    const artistPeriodData = artistData.get(record.artist_name);
+    const period = viewType === "hourly" ? parseInt(record.hour) :
+                  viewType === "daily" ? parseInt(record.day_of_week) :
+                  viewType === "monthly" ? parseInt(record.day) - 1 :
+                  parseInt(record.month) - 1;
 
-    //console.log(averageData);
-    //console.log(artistData);
-    return artistData;
+    artistPeriodData[period] += record.total_engagement;
+    averageData[period] += record.total_engagement;
+    artistCountPerPeriod[period]++;
+  });
+
+  // Calculate averages
+  for (let i = 0; i < periodLength; i++) {
+    if (artistCountPerPeriod[i] > 0) {
+      averageData[i] = averageData[i] / artistCountPerPeriod[i];
+    }
   }
+
+  artistData.set("Average of all artists", averageData);
+  return artistData;
+}
 
   function createChart(artistName: string) {
     const canvas = document.getElementById(
@@ -49,15 +57,28 @@
     }
 
     const artistData = processData();
-    const hourLabels = Array.from(
-      { length: 24 },
-      (_, i) => `${i.toString().padStart(2, "0")}:00`
-    );
+    const labels = (() => {
+      switch (viewType) {
+        case "hourly":
+          return Array.from(
+            { length: 24 },
+            (_, i) => `${i.toString().padStart(2, "0")}:00`
+          );
+        case "daily":
+          return ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        case "monthly":
+          return Array.from({ length: 31 }, (_, i) => `Day ${i + 1}`);
+          case "yearly":
+      return ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        default:
+          return [];
+      }
+    })();
 
     chartInstance = new Chart(canvas, {
       type: "line",
       data: {
-        labels: hourLabels,
+        labels,
         datasets: [
           {
             label:
@@ -81,7 +102,7 @@
         plugins: {
           title: {
             display: true,
-            text: `Hourly Engagement Pattern for ${artistName}`,
+            text: `${viewType.charAt(0).toUpperCase() + viewType.slice(1)} Engagement Pattern for ${artistName}`,
             color: "#f5fefd",
             font: { size: 16 },
           },
@@ -96,7 +117,10 @@
           x: {
             title: {
               display: true,
-              text: "Hour of Day",
+              text: 
+                viewType === "hourly" ? "Hour of Day" :
+                viewType === "daily" ? "Day of Week" :
+                viewType === "monthly" ? "Day of Month" : "Month of Year",
               color: "#f5fefd",
             },
             ticks: {
@@ -130,11 +154,70 @@
   $effect(() => {
     createChart(selectedArtist);
   });
+
+  function toggleButton(newType: string) {
+    switch (newType) {
+      case "monthly":
+        viewType = "monthly";
+        break;
+      case "hourly":
+        viewType = "hourly";
+        break;
+      case "daily":
+        viewType = "daily";
+        break;
+      case "yearly":
+        viewType = "yearly";
+        break;
+    }
+  }
 </script>
 
 <div
   class="w-full flex min-h-[650px] bg-white dark:bg-gray-800 p-7 rounded-t-lg shadow border-b-4"
 >
+  <ul
+    class="flex flex-wrap text-sm font-medium text-center text-gray-500 border-gray-200 dark:border-gray-700 dark:text-gray-400"
+  >
+    <li class="me-2">
+      <button
+        onclick={() => toggleButton("hourly")}
+        aria-current="page"
+        class="inline-block p-4 rounded-t-lg hover:text-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 dark:hover:text-gray-300 {viewType ===
+        'hourly'
+          ? 'text-blue-600 bg-gray-100 dark:bg-gray-800 dark:text-blue-500 border-b'
+          : ''}">Day</button
+      >
+    </li>
+    <li class="me-2">
+      <button
+        onclick={() => toggleButton("daily")}
+        class="inline-block p-4 rounded-t-lg hover:text-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 dark:hover:text-gray-300 {viewType ===
+        'daily'
+          ? 'text-blue-600 bg-gray-100 dark:bg-gray-800 dark:text-blue-500 border-b'
+          : ''}">Week</button
+      >
+    </li>
+    <li class="me-2">
+      <button
+        onclick={() => toggleButton("monthly")}
+        class="inline-block p-4 rounded-t-lg hover:text-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 dark:hover:text-gray-300 {viewType ===
+        'monthly'
+          ? 'text-blue-600 bg-gray-100 dark:bg-gray-800 dark:text-blue-500 border-b'
+          : ''}">Month</button
+      >
+    </li>
+    <li class="me-2">
+      <button
+        onclick={() => toggleButton("yearly")}
+        class="inline-block p-4 rounded-t-lg hover:text-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 dark:hover:text-gray-300 {viewType ===
+        'yearly'
+          ? 'text-blue-600 bg-gray-100 dark:bg-gray-800 dark:text-blue-500 border-b'
+          : ''}">Year</button
+      >
+    </li>
+  </ul>
+
   <div class="flex-1 w-full">
     <canvas id="engagementChart"></canvas>
   </div>

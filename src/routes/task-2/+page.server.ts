@@ -7,8 +7,12 @@ export const load: PageServerLoad = async ({ locals }) => {
 WITH weighted_events AS (
   SELECT 
     ue.artist_id,
-    u.timezone,
-    ue.created_at,
+    a.name as artist_name,
+    strftime('%H', datetime(ue.created_at/1000, 'unixepoch')) as hour,
+    strftime('%w', datetime(ue.created_at/1000, 'unixepoch')) as day_of_week,
+    strftime('%d', datetime(ue.created_at/1000, 'unixepoch')) as day_of_month,
+    strftime('%m', datetime(ue.created_at/1000, 'unixepoch')) as month,
+    strftime('%Y', datetime(ue.created_at/1000, 'unixepoch')) as year,
     CASE 
       WHEN ue.event_type = 'like_track' THEN 2
       WHEN ue.event_type = 'add_track_to_playlist' THEN 2
@@ -17,19 +21,79 @@ WITH weighted_events AS (
       ELSE 0 
     END as engagement_score
   FROM user_events ue
-  JOIN users u ON ue.user_id = u.id
+  JOIN artists a ON ue.artist_id = a.id
   WHERE ue.event_type IN ('like_track', 'add_track_to_playlist', 'play_track', 'share_track')
+),
+hourly_stats AS (
+  SELECT artist_name, hour, SUM(engagement_score) as total_engagement
+  FROM weighted_events
+  GROUP BY artist_name, hour
+),
+daily_stats AS (
+  SELECT artist_name, day_of_week, SUM(engagement_score) as total_engagement
+  FROM weighted_events
+  GROUP BY artist_name, day_of_week
+),
+monthly_stats AS (
+  SELECT artist_name, day_of_month, SUM(engagement_score) as total_engagement
+  FROM weighted_events
+  GROUP BY artist_name, day_of_month
+),
+yearly_stats AS (
+  SELECT artist_name, CAST(month AS INTEGER) as month, SUM(engagement_score) as total_engagement
+  FROM weighted_events
+  GROUP BY artist_name, month
 )
 SELECT 
-  we.artist_id,
-  a.name as artist_name,
-  strftime('%H', datetime(we.created_at/1000, 'unixepoch')) as hour,
-  SUM(we.engagement_score) as total_engagement
-FROM weighted_events we
-JOIN artists a ON we.artist_id = a.id
-GROUP BY we.artist_id, hour
-ORDER BY we.artist_id, hour;
-  
+  artist_name,
+  hour,
+  day_of_week,
+  day_of_month as day,
+  month,
+  SUM(engagement_score) as total_engagement,
+  'hourly' as period_type
+FROM weighted_events
+GROUP BY artist_name, hour
+
+UNION ALL
+
+SELECT 
+  artist_name,
+  NULL as hour,
+  day_of_week,
+  NULL as day,
+  NULL as month,
+  SUM(engagement_score) as total_engagement,
+  'daily' as period_type
+FROM weighted_events
+GROUP BY artist_name, day_of_week
+
+UNION ALL
+
+SELECT 
+  artist_name,
+  NULL as hour,
+  NULL as day_of_week,
+  day_of_month as day,
+  NULL as month,
+  SUM(engagement_score) as total_engagement,
+  'monthly' as period_type
+FROM weighted_events
+GROUP BY artist_name, day_of_month
+
+UNION ALL
+
+SELECT 
+  artist_name,
+  NULL as hour,
+  NULL as day_of_week,
+  NULL as day,
+  month,
+  SUM(engagement_score) as total_engagement,
+  'yearly' as period_type
+FROM weighted_events
+GROUP BY artist_name, month
+ORDER BY artist_name, period_type;
   `;
 
   const eventBarStatsQueryAvg = `
