@@ -1,6 +1,5 @@
 <script lang="ts">
   import { Chart } from "chart.js/auto";
-  import { onMount } from "svelte";
 
   let { data, selectedArtist } = $props();
   let chartInstance: Chart | null = null;
@@ -39,19 +38,6 @@
     return artistData;
   }
 
-  // Process artists for dropdown
-  function processArtists() {
-    const uniqueArtists = new Set<string>();
-    data.forEach((record: any) => {
-      uniqueArtists.add(record.artist_name);
-    });
-    artists = Array.from(uniqueArtists).sort();
-  }
-
-  onMount(() => {
-    processArtists();
-  });
-
   function createChart(artistName: string) {
     const canvas = document.getElementById(
       "engagementChart"
@@ -81,11 +67,11 @@
             data: artistData.get(artistName),
             fill: true,
             backgroundColor: "rgb(245, 254, 253, 0.3)",
-            borderColor: "rgb(75, 192, 192)",
+            borderColor: "rgb(255, 205, 86,1)",
             pointBorderColor: "#fffff",
             tension: 0.4,
             pointRadius: 4,
-            pointBackgroundColor: "rgb(54, 162, 235)",
+            pointBackgroundColor: "rgb(255, 0, 0)",
           },
         ],
       },
@@ -114,7 +100,7 @@
               color: "#f5fefd",
             },
             ticks: {
-              color: "#f5fefd"
+              color: "#f5fefd",
             },
             grid: {
               display: true,
@@ -128,7 +114,7 @@
               color: "#f5fefd",
             },
             ticks: {
-              color: "#f5fefd"
+              color: "#f5fefd",
             },
             beginAtZero: true,
             grid: {
@@ -146,28 +132,10 @@
   });
 </script>
 
-<div class="w-full flex h-[600px] bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
-
-  <div class="max-w-md">
-    <label
-      for="artist-select"
-      class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2"
-    >
-      Select Artist
-    </label>
-    <select
-      id="artist-select"
-      bind:value={selectedArtist}
-      class="block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-    >
-      <option value="Average of all artists">Average of all artists</option>
-      {#each artists as artist}
-        <option value={artist}>{artist}</option>
-      {/each}
-    </select>
-  </div>
-
-  <div class="flex-1">
+<div
+  class="w-full flex min-h-[650px] bg-white dark:bg-gray-800 p-7 rounded-t-lg shadow border-b-4"
+>
+  <div class="flex-1 w-full">
     <canvas id="engagementChart"></canvas>
   </div>
 </div>

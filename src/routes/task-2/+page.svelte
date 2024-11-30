@@ -1,22 +1,41 @@
 <script lang="ts">
   import type { PageData } from "./$types";
-  import LineChart from "$lib/components/lineChart.svelte";
-  import EventBarChart from "$lib/components/eventBarChart.svelte"; 
-  import EventLineChart from "$lib/components/eventLineChart.svelte";
-
+  import EngagementSection from "$lib/components/engagementSection/engagementSection.svelte";
+  import EventSection from "$lib/components/eventSection/eventSection.svelte";
   let { data }: { data: PageData } = $props();
   let selectedArtist = $state<string>("Average of all artists");
   let currentPage = $state(1);
-  let eventCharts = ["Event Engagement by Points and Occurance", "Event Type Trend"];
-  let selectedEventChart = $state<string>("Event Engagement by Points and Occurance");
+
   function goToPage(page: number) {
-    if (page >= 1 && page <= 3) {
+    if (page >= 1 && page <= 2) {
       currentPage = page;
     }
   }
+
+  //clock=
+  function formatDateTime() {
+    const date = new Date();
+    const hours = date.getHours().toString().padStart(2, "0");
+    const minutes = date.getMinutes().toString().padStart(2, "0");
+    const seconds = date.getSeconds().toString().padStart(2, "0");
+
+    return {
+      time: `${hours}:${minutes}:${seconds}`,
+      date: date.toLocaleDateString(),
+      raw: date,
+    };
+  }
+
+  let dateTime = $state(formatDateTime());
+
+  // Update time every second
+  setInterval(() => {
+    dateTime = formatDateTime();
+  }, 1000);
 </script>
 
 <div class="flex flex-col items-center p-4 gap-6 min-h-[60rem]">
+  <!-- pagination -->
   <nav aria-label="data pagination" class="mb-2">
     <ul class="inline-flex -space-x-px text-sm">
       <li>
@@ -26,7 +45,7 @@
           >Previous</button
         >
       </li>
-      {#each Array(3) as _, i}
+      {#each Array(2) as _, i}
         <li>
           <button
             onclick={() => goToPage(i + 1)}
@@ -47,44 +66,41 @@
       </li>
     </ul>
   </nav>
+
+  <!-- dropdown -->
+  <div class="min-w-md">
+    <label
+      for="underline_select"
+      class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2"
+    >
+      Select Artist
+    </label>
+    <select
+      id="underline_select"
+      bind:value={selectedArtist}
+      class="block p-2.5 w-[200px] text-sm bg-transparent border-0 border-b-2 border-gray-200 appearance-none dark:text-gray-200 dark:border-gray-700 focus:outline-none focus:ring-0 focus:border-gray-200 peer"
+    >
+      <option
+        value="Average of all artists"
+        class="block px-4 py-2 text-sm text-gray-700"
+        >Average of all artists</option
+      >
+      {#each [...new Set(data.engagementStats.map((d: { artist_name: string }) => d.artist_name))] as artist}
+        <option
+          class="block px-4 py-2 text-sm text-gray-700 bg-transparent"
+          value={artist}>{artist}</option
+        >
+      {/each}
+    </select>
+  </div>
+  <div class="text-3xl font-bold text-gray-700 dark:text-gray-200">
+    <span>{dateTime.time}</span>
+    <span class="text-xl ml-2">{dateTime.date}</span>
+  </div>
+  <!-- components -->
   {#if currentPage === 1}
-    <div class="container mx-auto max-w-screen justify-center items-center">
-      <h1 class="text-2xl font-bold text-center mb-5">Artists Stats</h1> 
-      <LineChart data={data.engagementStats} {selectedArtist} />
-    </div>
-    
-    {:else if currentPage === 2}
-    <div class="container mx-auto max-w-screen justify-center items-center">
-      <h1 class="text-2xl font-bold text-center mb-5">Events Stats</h1> 
-      <div class="max-w-md mb-2">
-        <label
-          for="artist-select"
-          class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2"
-        >
-          Select Chart
-        </label>
-        <select
-          id="artist-select"
-          bind:value={selectedEventChart}
-          class="block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-        >
-          {#each eventCharts as eventChart}
-            <option value={eventChart}>{eventChart}</option>
-          {/each}
-        </select>
-      </div>
-
-      {#if selectedEventChart === "Event Engagement by Points and Occurance"}
-      <EventBarChart data={data.eventBarStats} barTitle="Event Engagement by Points and Occurance" yTitle="Total Points" xTitle="Event Type" />
-      {:else if selectedEventChart === "Event Type Trend"}
-      <EventLineChart data={data.eventLineStats} />
-      {/if}
-    </div>
-
-    {:else}
-    <div class="container mx-auto max-w-screen justify-center items-center">
-      <h1 class="text-2xl font-bold text-center mb-5">Section 3</h1> 
-
-    </div>
+    <EngagementSection {data} {selectedArtist} />
+  {:else if currentPage === 2}
+    <EventSection {data} {selectedArtist} />
   {/if}
 </div>
