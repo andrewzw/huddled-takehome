@@ -41,7 +41,7 @@
       processedData = showAverage ? processData(dataAvg) : dataTotal;
     } else {
       processedData = dataAvg.filter(
-        (record) => record.artist_name === selectedArtist
+        (record: any) => record.artist_name === selectedArtist
       );
     }
 
@@ -145,6 +145,7 @@
 </script>
 
 <div class="w-full flex h-fit bg-white dark:bg-gray-800 p-4 rounded-t-lg">
+  <div class="flex flex-col gap-4 max-w-md"> 
   {#if selectedArtist === "Average of all artists"}
     <div class="max-w-md">
       <button
@@ -155,7 +156,37 @@
       </button>
     </div>
   {/if}
-
+  
+  <div class="bg-gray-700 rounded-lg p-4">
+    <h3 class="text-white text-sm font-medium mb-2">Points System</h3>
+    <table class="text-sm text-white">
+      <thead>
+        <tr >
+          <th class="text-left pb-2">Event Type</th>
+          <th class="text-right pb-2">Points</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="border-b-2 text-red-300">
+          <td class="pr-4 0">Share Track</td>
+          <td class="text-right">3</td>
+        </tr>
+        <tr class="border-b-2 text-blue-300">
+          <td class="pr-4 ">Like Track</td>
+          <td class="text-right">2</td>
+        </tr>
+        <tr class="border-b-2 text-teal-300">
+          <td class="pr-4">Add to Playlist</td>
+          <td class="text-right">2</td>
+        </tr>
+        <tr class="border-b-2 text-yellow-300">
+          <td class="pr-4">Play Track</td>
+          <td class="text-right">1</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
   <div class="flex-1 h-[65vh] w-fit">
     <canvas id="eventsChart"></canvas>
   </div>

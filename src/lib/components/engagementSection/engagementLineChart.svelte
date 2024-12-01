@@ -177,46 +177,47 @@
 </script>
 
 <div
-  class="w-full flex min-h-[650px] bg-white dark:bg-gray-800 p-7 rounded-t-lg shadow border-b-4"
+  class="w-full flex flex-col min-h-[650px] bg-white dark:bg-gray-800 p-7 rounded-t-lg shadow border-b-4"
 >
+
   <ul
-    class="flex flex-wrap text-sm font-medium text-center text-gray-500 border-gray-200 dark:border-gray-700 dark:text-gray-400"
+    class="flex flex-wrap w-fit text-sm font-medium text-center bg-[#020617] rounded-lg h-fit text-gray-500 border-gray-200 dark:border-gray-700 dark:text-gray-400"
   >
-    <li class="me-2">
+    <li class="">
       <button
         onclick={() => toggleButton("hourly")}
         aria-current="page"
-        class="inline-block p-4 rounded-t-lg hover:text-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 dark:hover:text-gray-300 {viewType ===
+        class="inline-block p-4 rounded-tl-lg rounded-bl-lg hover:text-gray-600 hover:border-b hover:bg-gray-50 dark:hover:bg-gray-800 dark:hover:bg-opacity-70 dark:hover:text-gray-300 {viewType ===
         'hourly'
-          ? 'text-blue-600 bg-gray-100 dark:bg-gray-800 dark:text-blue-500 border-b'
+          ? 'text-blue-600 bg-gray-100 dark:bg-gray-800 dark:bg-opacity-70 dark:text-blue-500 border-b'
           : ''}">Day</button
       >
     </li>
-    <li class="me-2">
+    <li class="">
       <button
         onclick={() => toggleButton("daily")}
-        class="inline-block p-4 rounded-t-lg hover:text-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 dark:hover:text-gray-300 {viewType ===
+        class="inline-block p-4  hover:text-gray-600 hover:border-b hover:bg-gray-50 dark:hover:bg-gray-800 dark:hover:bg-opacity-70 dark:hover:text-gray-300 {viewType ===
         'daily'
-          ? 'text-blue-600 bg-gray-100 dark:bg-gray-800 dark:text-blue-500 border-b'
-          : ''}">Week</button
+        ? 'text-blue-600 bg-gray-100 dark:bg-gray-800 dark:bg-opacity-70 dark:text-blue-500 border-b'
+        : ''}">Week</button
       >
     </li>
-    <li class="me-2">
+    <li class="">
       <button
         onclick={() => toggleButton("monthly")}
-        class="inline-block p-4 rounded-t-lg hover:text-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 dark:hover:text-gray-300 {viewType ===
+        class="inline-block p-4 hover:text-gray-600 hover:border-b hover:bg-gray-50 dark:hover:bg-gray-800 dark:hover:bg-opacity-70 dark:hover:text-gray-300 {viewType ===
         'monthly'
-          ? 'text-blue-600 bg-gray-100 dark:bg-gray-800 dark:text-blue-500 border-b'
-          : ''}">Month</button
+        ? 'text-blue-600 bg-gray-100 dark:bg-gray-800 dark:bg-opacity-70 dark:text-blue-500 border-b'
+        : ''}">Month</button
       >
     </li>
-    <li class="me-2">
+    <li class="">
       <button
         onclick={() => toggleButton("yearly")}
-        class="inline-block p-4 rounded-t-lg hover:text-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 dark:hover:text-gray-300 {viewType ===
+        class="inline-block p-4 rounded-tr-lg rounded-br-lg hover:text-gray-600 hover:border-b hover:bg-gray-50 dark:hover:bg-gray-800 dark:hover:bg-opacity-70 dark:hover:text-gray-300 {viewType ===
         'yearly'
-          ? 'text-blue-600 bg-gray-100 dark:bg-gray-800 dark:text-blue-500 border-b'
-          : ''}">Year</button
+        ? 'text-blue-600 bg-gray-100 dark:bg-gray-800 dark:bg-opacity-70 dark:text-blue-500 border-b '
+        : ''}">Year</button
       >
     </li>
   </ul>

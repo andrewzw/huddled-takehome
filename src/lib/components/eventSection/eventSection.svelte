@@ -38,7 +38,7 @@
     />
     <EventStackBarChart
       {selectedArtist}
-      data={data.engagementTimePeriodStats}
+      data={data.eventStackBarStats}
       barTitle="Event Engagement by Time Period"
     />
   {:else if selectedEventChart === "Event Type Trend"}
