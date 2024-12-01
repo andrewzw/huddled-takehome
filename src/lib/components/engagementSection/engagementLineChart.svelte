@@ -183,7 +183,7 @@
   <ul
     class="flex flex-wrap w-fit text-sm font-medium text-center bg-[#020617] rounded-lg h-fit text-gray-500 border-gray-200 dark:border-gray-700 dark:text-gray-400"
   >
-    <li class="">
+    <li>
       <button
         onclick={() => toggleButton("hourly")}
         aria-current="page"
@@ -193,7 +193,7 @@
           : ''}">Day</button
       >
     </li>
-    <li class="">
+    <li>
       <button
         onclick={() => toggleButton("daily")}
         class="inline-block p-4  hover:text-gray-600 hover:border-b hover:bg-gray-50 dark:hover:bg-gray-800 dark:hover:bg-opacity-70 dark:hover:text-gray-300 {viewType ===
@@ -202,7 +202,7 @@
         : ''}">Week</button
       >
     </li>
-    <li class="">
+    <li>
       <button
         onclick={() => toggleButton("monthly")}
         class="inline-block p-4 hover:text-gray-600 hover:border-b hover:bg-gray-50 dark:hover:bg-gray-800 dark:hover:bg-opacity-70 dark:hover:text-gray-300 {viewType ===
@@ -211,7 +211,7 @@
         : ''}">Month</button
       >
     </li>
-    <li class="">
+    <li>
       <button
         onclick={() => toggleButton("yearly")}
         class="inline-block p-4 rounded-tr-lg rounded-br-lg hover:text-gray-600 hover:border-b hover:bg-gray-50 dark:hover:bg-gray-800 dark:hover:bg-opacity-70 dark:hover:text-gray-300 {viewType ===

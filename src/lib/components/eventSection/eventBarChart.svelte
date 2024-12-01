@@ -176,11 +176,11 @@
           <td class="text-right">2</td>
         </tr>
         <tr class="border-b-2 text-teal-300">
-          <td class="pr-4">Add to Playlist</td>
+          <td class="pr-4">Play Track</td>          
           <td class="text-right">2</td>
         </tr>
         <tr class="border-b-2 text-yellow-300">
-          <td class="pr-4">Play Track</td>
+          <td class="pr-4">Add to Playlist</td>
           <td class="text-right">1</td>
         </tr>
       </tbody>
