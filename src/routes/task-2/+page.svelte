@@ -103,7 +103,7 @@
           class="block px-4 py-2 text-sm text-gray-700"
           >Average of all artists</option
         >
-        {#each [...new Set(data.engagementStats.map((d: { artist_name: string }) => d.artist_name))] as artist}
+        {#each [...new Set(data.artistsName.map((d: { artist_name: string }) => d.artist_name))] as artist}
           <option
             class="block px-4 py-2 text-sm text-gray-700 bg-transparent"
             value={artist}>{artist}</option

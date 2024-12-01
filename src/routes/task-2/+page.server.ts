@@ -2,9 +2,9 @@ import type { PageServerLoad } from "./$types";
 
 export const load: PageServerLoad = async ({ locals }) => {
   const db = locals.db;
-
+  const artists = `SELECT name as  artist_name FROM artists`;
   const engagementQuery = `
-WITH weighted_events AS (
+WITH metrics AS (
   SELECT 
     ue.artist_id,
     a.name as artist_name,
@@ -43,7 +43,7 @@ SELECT
   END as month,
   SUM(engagement_score) as total_engagement,
   period_type
-FROM weighted_events
+FROM metrics
 CROSS JOIN (
   SELECT 'hourly' as period_type UNION ALL
   SELECT 'daily' UNION ALL
@@ -113,7 +113,7 @@ ORDER BY total_score DESC;
     `;
 
   const eventLineStatsQuery = `
-WITH weighted_events AS (
+WITH metrics AS (
   SELECT 
     ue.event_type,
     ue.artist_id,
@@ -143,7 +143,7 @@ SELECT
   month,
   SUM(engagement_score) as total_engagement,
   COUNT(*) as total_occurrences
-FROM weighted_events
+FROM metrics
 GROUP BY event_type, artist_name, day_of_week, hour, day_of_month, month
 ORDER BY event_type, month, day_of_month, day_of_week, hour;
 `;
@@ -199,11 +199,10 @@ WITH event_metrics AS (
 )
 SELECT * FROM event_metrics;
 `;
-
+  const artistsName = await db.prepare(artists).all();
   const engagementStats = await db.prepare(engagementQuery).all();
   const eventBarStatsAvg = await db.prepare(eventBarStatsQueryAvg).all();
   const eventBarStatsTotal = await db.prepare(eventBarStatsQueryTotal).all();
-
   const eventLineStats = await db.prepare(eventLineStatsQuery).all();
   const engagementTimePeriodStats = await db
     .prepare(engagementTimePeriodQuery)
@@ -211,6 +210,7 @@ SELECT * FROM event_metrics;
   const artistRadarStats = await db.prepare(artistRadarQuery).all();
 
   return {
+    artistsName,
     engagementStats,
     engagementTimePeriodStats,
     eventBarStatsAvg,
