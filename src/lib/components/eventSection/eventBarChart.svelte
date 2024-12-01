@@ -58,7 +58,7 @@
         labels: processedData.map((item: any) => item.event_type.toUpperCase()),
         datasets: [
           {
-            label: `${showAverage ? "Average" : "Total"} Points`,
+            label: `${showAverage && selectedArtist === "Average of all artists" ? " (Average)" : " (Total)"} Points`,
             data: processedData.map((item: any) => item.total_score),
             backgroundColor: processedData.map(
               (item: any) => colors[item.event_type.toUpperCase()]
@@ -71,7 +71,7 @@
             order: 1,
           },
           {
-            label: `${showAverage ? "Average" : "Total"} Occurrences`,
+            label: `${showAverage && selectedArtist === "Average of all artists" ? " (Average)" : " (Total)"} Occurrences`,
             data: processedData.map((item: any) => item.total_occurrences),
             borderColor: processedData.map(
               (item: any) => colors[item.event_type.toUpperCase()]

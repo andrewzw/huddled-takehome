@@ -14,11 +14,11 @@
   return eventData;
 }
 
-function processTimeData(record: any, eventData: Map<string, number[]>, timeField: string, adjustment = 0) {
+function processTimeData(record: any, eventData: Map<string, number[]>, timeField: string, adjustment = 0, points: boolean) {
   const data = eventData.get(record.event_type);
   const timeValue = parseInt(record[timeField]);
   if (data && !isNaN(timeValue)) {
-    data[timeValue + adjustment] += record.total_engagement;
+    data[timeValue + adjustment] += points ? record.total_engagement : record.total_occurrences;
   }
 }
   function processData() {
@@ -47,7 +47,7 @@ function processTimeData(record: any, eventData: Map<string, number[]>, timeFiel
 
 //process data
 filteredData.forEach((record: any) => {
-    processTimeData(record, eventData, config.field, config.adjustment);
+    processTimeData(record, eventData, config.field, config.adjustment, points);
   });
 
   //calc average data when average of all artists selected
@@ -104,7 +104,7 @@ filteredData.forEach((record: any) => {
           ...Array.from(eventData.entries())
             .filter(([type]) => type !== "average")
             .map(([type, data]) => ({
-              label: type.replace(/_/g, " ").toUpperCase(),
+              label: `${type.replace(/_/g, " ").toUpperCase()} ${points  ? "(Points)" : "(Occurrences)"}`,
               data: data,
               fill: true,
               backgroundColor: "transparent",
@@ -115,7 +115,7 @@ filteredData.forEach((record: any) => {
             pointHoverBorderWidth: 6,
             })),
           {
-            label: "AVERAGE",
+            label: `AVERAGE ${points? "(Points)" : "(Occurrences)"}`,
             data: eventData.get("average") ?? [],
             borderColor: "rgb(255, 255, 255)",
             borderWidth: 2,
@@ -138,10 +138,10 @@ filteredData.forEach((record: any) => {
             text:
               `${selectedArtist === "All artists" ? "" : selectedArtist + " - "}` +
               (viewType === "hourly"
-                ? "Engagement Points by Hours of Day"
+                ? ` Hours of Day Engagement by `
                 : viewType === "daily"
-                  ? "Engagement Points by Days of Week"
-                  : "Engagement Points by Days of Month"),
+                  ? `Days of Week Engagement by `
+                  : `Days of Month Engagement by `) +`(${points ? "Points" : "Occurrences"})` ,
             color: "#f5fefd",
             font: { size: 16 },
           },
@@ -208,6 +208,11 @@ filteredData.forEach((record: any) => {
         break;
     }
   }
+
+  let points = $state(true);
+  function togglePoints() {
+    points = !points;
+  }
 </script>
 
 <div class="w-full h-fit bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
@@ -252,7 +257,17 @@ filteredData.forEach((record: any) => {
       >
     </li>
   </ul>
-  
+  <div class="max-w-md">
+
+
+    
+<label class="inline-flex items-center cursor-pointer mt-2">
+  <input type="checkbox" value="" class="sr-only peer" onclick={togglePoints}>
+  <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+  <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">View Occurance</span>
+</label>
+
+  </div>
   <div class="flex-1 h-[65vh]"
   >
 

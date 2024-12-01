@@ -84,7 +84,7 @@
             label:
               artistName === "Average of all artists"
                 ? "Average Engagement of all artists"
-                : `${artistName}'s Engagement`,
+                : `${artistName}'s Engagement Points`,
             data: artistData.get(artistName),
             fill: true,
             borderColor: "rgb(255, 255, 255)",
@@ -137,7 +137,7 @@
           y: {
             title: {
               display: true,
-              text: "Engagement Score",
+              text: "Engagement Point",
               color: "#f5fefd",
             },
             ticks: {

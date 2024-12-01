@@ -14,12 +14,7 @@
   ];
 
   function processData() {
-    const metrics = [
-      "play_count",
-      "like_count",
-      "playlist_count",
-      "share_count",
-    ];
+    const metrics = ["play_count", "like_count", "playlist_count", "share_count"];
     const labels = ["Plays", "Likes", "Playlist Adds", "Shares"];
     let datasets: {
       label: string;
@@ -34,6 +29,7 @@
     //console.log("artist Radar Chart data:", data);
 
     selectedArtists.forEach((artist, index) => {
+      // calc average if all artists selected
       if (artist === "Average of all artists") {
         const averageData = metrics.map((metric) => {
           const sum = data.reduce(
@@ -53,16 +49,16 @@
           pointBorderColor: "#fff",
         });
       } else {
-        const artistData = data.find((d: any) => d.artist_name === artist);
+         const artistData = data.find((d: any) => d.artist_name === artist);
         if (artistData) {
           datasets.push({
-            label: `${artist}'s Engagement`,
-            data: metrics.map((m) => artistData[m]),
+            label: `${artist}'s Total Engagement Occurances`,
+            data: metrics.map(m => artistData[m]),
             fill: true,
             backgroundColor: colors[index].bg,
             borderColor: colors[index].border,
             pointBackgroundColor: colors[index].border,
-            pointBorderColor: "#fff",
+            pointBorderColor: "#fff"
           });
         }
       }

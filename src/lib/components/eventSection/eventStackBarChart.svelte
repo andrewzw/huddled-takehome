@@ -23,37 +23,42 @@
       "18:00-23:59",
     ];
 
+ // check if selected artist
+ const filteredData = selectedArtist === "Average of all artists" 
+      ? data 
+      : data.filter((d: any) => d.artist_name === selectedArtist);
+
     const datasets =
       viewType === "points"
         ? [
             //by points
             {
-              label: "PLAY TRACK",
-              data: data.map(
+              label: "PLAY TRACK (Points)",
+              data: filteredData.map(
                 (d: { play_track_score: number }) => d.play_track_score
               ),
               backgroundColor: "rgb(75, 192, 192,0.5)",
               stack: "engagement",
             },
             {
-              label: "SHARE TRACK",
-              data: data.map(
+              label: "SHARE TRACK (Points)",
+              data: filteredData.map(
                 (d: { share_track_score: number }) => d.share_track_score
               ),
               backgroundColor: "rgb(255, 99, 132,0.5)",
               stack: "engagement",
             },
             {
-              label: "ADD TO PLAYLIST",
-              data: data.map(
+              label: "ADD TO PLAYLIST (Points)",
+              data: filteredData.map(
                 (d: { playlist_score: number }) => d.playlist_score
               ),
               backgroundColor: "rgb(255, 205, 86,0.5)",
               stack: "engagement",
             },
             {
-              label: "LIKE TRACK",
-              data: data.map(
+              label: "LIKE TRACK (Points)",
+              data: filteredData.map(
                 (d: { like_track_score: number }) => d.like_track_score
               ),
               backgroundColor: "rgb(54, 162, 235,0.5)",
@@ -61,46 +66,46 @@
             },
           ]
         : [
-            //by count
+            //by occurance
             {
-              label: "PLAY TRACK (Count)",
-              data: data.map(
+              label: "PLAY TRACK (Occurance)",
+              data: filteredData.map(
                 (d: { play_track_count: number }) => d.play_track_count
               ),
               backgroundColor: "rgb(75, 192, 192,0.15)",
               borderColor: "rgb(75, 192, 192)",
               borderWidth: 3,
-              stack: "counts",
+              stack: "occurances",
             },
             {
-              label: "SHARE TRACK (Count)",
-              data: data.map(
+              label: "SHARE TRACK (Occurance)",
+              data: filteredData.map(
                 (d: { share_track_count: number }) => d.share_track_count
               ),
               backgroundColor: "rgb(255, 99, 132,0.15)",
               borderColor: "rgb(255, 99, 132)",
               borderWidth: 3,
-              stack: "counts",
+              stack: "occurances",
             },
             {
-              label: "ADD TO PLAYLIST (Count)",
-              data: data.map(
+              label: "ADD TO PLAYLIST (Occurance)",
+              data: filteredData.map(
                 (d: { playlist_count: number }) => d.playlist_count
               ),
               backgroundColor: "rgb(255, 205, 86,0.15)",
               borderColor: "rgb(255, 205, 86)",
               borderWidth: 3,
-              stack: "counts",
+              stack: "occurances",
             },
             {
-              label: "LIKE TRACK (Count)",
-              data: data.map(
+              label: "LIKE TRACK (Occurance)",
+              data: filteredData.map(
                 (d: { like_track_count: number }) => d.like_track_count
               ),
               backgroundColor: "rgb(54, 162, 235,0.15)",
               borderColor: "rgb(54, 162, 235)",
               borderWidth: 3,
-              stack: "counts",
+              stack: "occurances",
             },
           ];
 
@@ -116,7 +121,9 @@
         plugins: {
           title: {
             display: true,
-            text: barTitle,
+            text: selectedArtist === "Average of all artists" 
+              ? barTitle 
+              : `${barTitle} - ${selectedArtist}`,
             color: "#f5fefd",
             font: { size: 16 },
           },
@@ -143,7 +150,7 @@
               text:
                 viewType === "points"
                   ? "Total Engagement Points"
-                  : "Total Engagement Count",
+                  : "Total Engagement Occurances",
               color: "#f5fefd",
             },
             ticks: { color: "#f5fefd" },
@@ -166,7 +173,7 @@
 
   function toggleButton() {
     if (viewType === "points") {
-      viewType = "counts";
+      viewType = "occurances";
     } else {
       viewType = "points";
     }
@@ -181,7 +188,7 @@
       onclick={toggleButton}
       class="px-3 py-2 bg-white rounded-full shadow-sm dark:bg-gray-700 border dark:border-gray-600 dark:text-white hover:bg-gray-200 hover:text-gray-950"
     >
-      {viewType == "counts" ? "View Points" : "View Count"}
+      {viewType == "occurances" ? "View Points" : "View Occurance"}
     </button>
   </div>
 

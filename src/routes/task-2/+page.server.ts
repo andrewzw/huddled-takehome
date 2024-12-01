@@ -12,7 +12,6 @@ WITH weighted_events AS (
     strftime('%w', datetime(ue.created_at/1000, 'unixepoch')) as day_of_week,
     strftime('%d', datetime(ue.created_at/1000, 'unixepoch')) as day_of_month,
     strftime('%m', datetime(ue.created_at/1000, 'unixepoch')) as month,
-    strftime('%Y', datetime(ue.created_at/1000, 'unixepoch')) as year,
     CASE 
       WHEN ue.event_type = 'like_track' THEN 2
       WHEN ue.event_type = 'add_track_to_playlist' THEN 2
@@ -23,76 +22,43 @@ WITH weighted_events AS (
   FROM user_events ue
   JOIN artists a ON ue.artist_id = a.id
   WHERE ue.event_type IN ('like_track', 'add_track_to_playlist', 'play_track', 'share_track')
-),
-hourly_stats AS (
-  SELECT artist_name, hour, SUM(engagement_score) as total_engagement
-  FROM weighted_events
-  GROUP BY artist_name, hour
-),
-daily_stats AS (
-  SELECT artist_name, day_of_week, SUM(engagement_score) as total_engagement
-  FROM weighted_events
-  GROUP BY artist_name, day_of_week
-),
-monthly_stats AS (
-  SELECT artist_name, day_of_month, SUM(engagement_score) as total_engagement
-  FROM weighted_events
-  GROUP BY artist_name, day_of_month
-),
-yearly_stats AS (
-  SELECT artist_name, CAST(month AS INTEGER) as month, SUM(engagement_score) as total_engagement
-  FROM weighted_events
-  GROUP BY artist_name, month
 )
 SELECT 
   artist_name,
-  hour,
-  day_of_week,
-  day_of_month as day,
-  month,
+  CASE period_type 
+    WHEN 'hourly' THEN hour 
+    ELSE NULL 
+  END as hour,
+  CASE period_type 
+    WHEN 'daily' THEN day_of_week 
+    ELSE NULL 
+  END as day_of_week,
+  CASE period_type 
+    WHEN 'monthly' THEN day_of_month 
+    ELSE NULL 
+  END as day,
+  CASE period_type 
+    WHEN 'yearly' THEN month 
+    ELSE NULL 
+  END as month,
   SUM(engagement_score) as total_engagement,
-  'hourly' as period_type
+  period_type
 FROM weighted_events
-GROUP BY artist_name, hour
-
-UNION ALL
-
-SELECT 
+CROSS JOIN (
+  SELECT 'hourly' as period_type UNION ALL
+  SELECT 'daily' UNION ALL
+  SELECT 'monthly' UNION ALL
+  SELECT 'yearly'
+) periods
+GROUP BY 
   artist_name,
-  NULL as hour,
-  day_of_week,
-  NULL as day,
-  NULL as month,
-  SUM(engagement_score) as total_engagement,
-  'daily' as period_type
-FROM weighted_events
-GROUP BY artist_name, day_of_week
-
-UNION ALL
-
-SELECT 
-  artist_name,
-  NULL as hour,
-  NULL as day_of_week,
-  day_of_month as day,
-  NULL as month,
-  SUM(engagement_score) as total_engagement,
-  'monthly' as period_type
-FROM weighted_events
-GROUP BY artist_name, day_of_month
-
-UNION ALL
-
-SELECT 
-  artist_name,
-  NULL as hour,
-  NULL as day_of_week,
-  NULL as day,
-  month,
-  SUM(engagement_score) as total_engagement,
-  'yearly' as period_type
-FROM weighted_events
-GROUP BY artist_name, month
+  period_type,
+  CASE period_type 
+    WHEN 'hourly' THEN hour
+    WHEN 'daily' THEN day_of_week
+    WHEN 'monthly' THEN day_of_month
+    WHEN 'yearly' THEN month
+  END
 ORDER BY artist_name, period_type;
   `;
 
@@ -147,7 +113,7 @@ ORDER BY total_score DESC;
     `;
 
   const eventLineStatsQuery = `
- WITH weighted_events AS (
+WITH weighted_events AS (
   SELECT 
     ue.event_type,
     ue.artist_id,
@@ -162,7 +128,8 @@ ORDER BY total_score DESC;
       WHEN ue.event_type = 'play_track' THEN 1
       WHEN ue.event_type = 'share_track' THEN 3
       ELSE 0 
-    END as engagement_score
+    END as engagement_score,
+    1 as occurrence_count
   FROM user_events ue
   JOIN artists a ON ue.artist_id = a.id
   WHERE ue.event_type IN ('like_track', 'add_track_to_playlist', 'play_track', 'share_track')
@@ -174,7 +141,8 @@ SELECT
   hour,
   day_of_month,
   month,
-  SUM(engagement_score) as total_engagement
+  SUM(engagement_score) as total_engagement,
+  COUNT(*) as total_occurrences
 FROM weighted_events
 GROUP BY event_type, artist_name, day_of_week, hour, day_of_month, month
 ORDER BY event_type, month, day_of_month, day_of_week, hour;
@@ -184,6 +152,7 @@ ORDER BY event_type, month, day_of_month, day_of_week, hour;
 WITH time_periods AS (
   SELECT 
     event_type,
+    a.name as artist_name,
     CASE 
       WHEN CAST(strftime('%H', datetime(created_at/1000, 'unixepoch')) AS INTEGER) < 6 THEN '00:00-05:59'
       WHEN CAST(strftime('%H', datetime(created_at/1000, 'unixepoch')) AS INTEGER) < 12 THEN '06:00-11:59'
@@ -197,21 +166,23 @@ WITH time_periods AS (
       WHEN event_type = 'share_track' THEN 3
       ELSE 0 
     END as engagement_score
-  FROM user_events
+  FROM user_events ue
+  JOIN artists a ON ue.artist_id = a.id
   WHERE event_type IN ('like_track', 'add_track_to_playlist', 'play_track', 'share_track')
 )
 SELECT 
   time_period,
+  artist_name,
   SUM(CASE WHEN event_type = 'play_track' THEN engagement_score ELSE 0 END) as play_track_score,
-  COUNT(CASE WHEN event_type = 'play_track' THEN 1 END) as play_track_count,
   SUM(CASE WHEN event_type = 'share_track' THEN engagement_score ELSE 0 END) as share_track_score,
-  COUNT(CASE WHEN event_type = 'share_track' THEN 1 END) as share_track_count,
   SUM(CASE WHEN event_type = 'add_track_to_playlist' THEN engagement_score ELSE 0 END) as playlist_score,
-  COUNT(CASE WHEN event_type = 'add_track_to_playlist' THEN 1 END) as playlist_count,
   SUM(CASE WHEN event_type = 'like_track' THEN engagement_score ELSE 0 END) as like_track_score,
+  COUNT(CASE WHEN event_type = 'play_track' THEN 1 END) as play_track_count,
+  COUNT(CASE WHEN event_type = 'share_track' THEN 1 END) as share_track_count,
+  COUNT(CASE WHEN event_type = 'add_track_to_playlist' THEN 1 END) as playlist_count,
   COUNT(CASE WHEN event_type = 'like_track' THEN 1 END) as like_track_count
 FROM time_periods
-GROUP BY time_period
+GROUP BY time_period, artist_name
 ORDER BY time_period;
 `;
   const artistRadarQuery = `
