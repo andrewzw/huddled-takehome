@@ -14,8 +14,9 @@
       return `${remainingMinutes}m ${remainingSeconds}s`; //less than 1 hour
     }
     return remainingSeconds > 0
+    //more than 1 hour
       ? `${hours}h ${remainingMinutes}m ${remainingSeconds}s`
-      : `${hours}h ${remainingMinutes}m`; //more than 1 hour
+      : `${hours}h ${remainingMinutes}m`; 
   }
 
   let currentPage = $state(1);
