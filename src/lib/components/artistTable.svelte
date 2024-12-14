@@ -4,13 +4,14 @@
   function formatDuration(duration: number): string {
     // duration is in milliseconds
     const seconds = Math.floor(duration / 1000);
-    const hours = Math.floor(seconds / 3600);
-    const remainingMinutes = Math.floor((seconds % 3600) / 60);
-    const remainingSeconds = seconds % 60;
+    const hours = Math.floor(seconds / 3600); 
+    const remainingMinutes = Math.floor((seconds % 3600) / 60); // remaining minutes after hours
+    const remainingSeconds = seconds % 60; // remaining seconds after minutes
 
     if (hours === 0 && remainingMinutes === 0) {
       return `${remainingSeconds}s`; //less than 1 min
-    } else if (hours === 0) {
+    } 
+    else if (hours === 0) {
       return `${remainingMinutes}m ${remainingSeconds}s`; //less than 1 hour
     }
     return remainingSeconds > 0
@@ -18,6 +19,10 @@
       ? `${hours}h ${remainingMinutes}m ${remainingSeconds}s`
       : `${hours}h ${remainingMinutes}m`; 
   }
+
+  // console.log(formatDuration(10000)); // 10s
+  // console.log(formatDuration(100000)); // 1m 40s
+  // console.log(formatDuration(10000000));// 2h 46m 40s
 
   let currentPage = $state(1);
   const itemsPerPage = 15;
